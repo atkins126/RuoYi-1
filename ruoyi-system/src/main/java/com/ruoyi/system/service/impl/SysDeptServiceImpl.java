@@ -1,7 +1,6 @@
 package com.ruoyi.system.service.impl;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,18 +70,12 @@ public class SysDeptServiceImpl implements ISysDeptService
     public List<Ztree> selectDeptTreeExcludeChild(SysDept dept)
     {
         Long excludeId = dept.getExcludeId();
-        List<SysDept> deptList = deptMapper.selectDeptList(dept);
-        Iterator<SysDept> it = deptList.iterator();
-        while (it.hasNext())
+        List<SysDept> depts = deptMapper.selectDeptList(dept);
+        if (excludeId.intValue() > 0)
         {
-            SysDept d = (SysDept) it.next();
-            if (d.getDeptId().intValue() == excludeId
-                    || ArrayUtils.contains(StringUtils.split(d.getAncestors(), ","), excludeId + ""))
-            {
-                it.remove();
-            }
+            depts.removeIf(d -> d.getDeptId().intValue() == excludeId || ArrayUtils.contains(StringUtils.split(d.getAncestors(), ","), excludeId + ""));
         }
-        List<Ztree> ztrees = initZtree(deptList);
+        List<Ztree> ztrees = initZtree(depts);
         return ztrees;
     }
 
@@ -97,7 +90,7 @@ public class SysDeptServiceImpl implements ISysDeptService
     {
         Long roleId = role.getRoleId();
         List<Ztree> ztrees = new ArrayList<Ztree>();
-        List<SysDept> deptList = selectDeptList(new SysDept());
+        List<SysDept> deptList = SpringUtils.getAopProxy(this).selectDeptList(new SysDept());
         if (StringUtils.isNotNull(roleId))
         {
             List<String> roleDeptList = deptMapper.selectRoleDeptTree(roleId);
@@ -153,7 +146,7 @@ public class SysDeptServiceImpl implements ISysDeptService
     }
 
     /**
-     * 查询部门人数
+     * 根据父部门ID查询下级部门数量
      * 
      * @param parentId 部门ID
      * @return 结果
@@ -176,7 +169,7 @@ public class SysDeptServiceImpl implements ISysDeptService
     public boolean checkDeptExistUser(Long deptId)
     {
         int result = deptMapper.checkDeptExistUser(deptId);
-        return result > 0 ? true : false;
+        return result > 0;
     }
 
     /**
@@ -302,15 +295,15 @@ public class SysDeptServiceImpl implements ISysDeptService
      * @return 结果
      */
     @Override
-    public String checkDeptNameUnique(SysDept dept)
+    public boolean checkDeptNameUnique(SysDept dept)
     {
         Long deptId = StringUtils.isNull(dept.getDeptId()) ? -1L : dept.getDeptId();
         SysDept info = deptMapper.checkDeptNameUnique(dept.getDeptName(), dept.getParentId());
         if (StringUtils.isNotNull(info) && info.getDeptId().longValue() != deptId.longValue())
         {
-            return UserConstants.DEPT_NAME_NOT_UNIQUE;
+            return UserConstants.NOT_UNIQUE;
         }
-        return UserConstants.DEPT_NAME_UNIQUE;
+        return UserConstants.UNIQUE;
     }
 
     /**
@@ -321,7 +314,7 @@ public class SysDeptServiceImpl implements ISysDeptService
     @Override
     public void checkDeptDataScope(Long deptId)
     {
-        if (!SysUser.isAdmin(ShiroUtils.getUserId()))
+        if (!SysUser.isAdmin(ShiroUtils.getUserId()) && StringUtils.isNotNull(deptId))
         {
             SysDept dept = new SysDept();
             dept.setDeptId(deptId);

@@ -23,6 +23,9 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils
     /** 下划线 */
     private static final char SEPARATOR = '_';
 
+    /** 星号 */
+    private static final char ASTERISK = '*';
+
     /**
      * 获取参数不为空值
      * 
@@ -161,6 +164,49 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils
     public static String trim(String str)
     {
         return (str == null ? "" : str.trim());
+    }
+
+    /**
+     * 替换指定字符串的指定区间内字符为"*"
+     *
+     * @param str 字符串
+     * @param startInclude 开始位置（包含）
+     * @param endExclude 结束位置（不包含）
+     * @return 替换后的字符串
+     */
+    public static String hide(CharSequence str, int startInclude, int endExclude)
+    {
+        if (isEmpty(str))
+        {
+            return NULLSTR;
+        }
+        final int strLength = str.length();
+        if (startInclude > strLength)
+        {
+            return NULLSTR;
+        }
+        if (endExclude > strLength)
+        {
+            endExclude = strLength;
+        }
+        if (startInclude > endExclude)
+        {
+            // 如果起始位置大于结束位置，不替换
+            return NULLSTR;
+        }
+        final char[] chars = new char[strLength];
+        for (int i = 0; i < strLength; i++)
+        {
+            if (i >= startInclude && i < endExclude)
+            {
+                chars[i] = ASTERISK;
+            }
+            else
+            {
+                chars[i] = str.charAt(i);
+            }
+        }
+        return new String(chars);
     }
 
     /**
@@ -322,6 +368,32 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils
         }
 
         return list;
+    }
+
+    /**
+     * 判断给定的collection列表中是否包含数组array 判断给定的数组array中是否包含给定的元素value
+     *
+     * @param collection 给定的集合
+     * @param array 给定的数组
+     * @return boolean 结果
+     */
+    public static boolean containsAny(Collection<String> collection, String... array)
+    {
+        if (isEmpty(collection) || isEmpty(array))
+        {
+            return false;
+        }
+        else
+        {
+            for (String str : array)
+            {
+                if (collection.contains(str))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 
     /**
@@ -551,5 +623,54 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils
     public static <T> T cast(Object obj)
     {
         return (T) obj;
+    }
+
+    /**
+     * 数字左边补齐0，使之达到指定长度。注意，如果数字转换为字符串后，长度大于size，则只保留 最后size个字符。
+     * 
+     * @param num 数字对象
+     * @param size 字符串指定长度
+     * @return 返回数字的字符串格式，该字符串为指定长度。
+     */
+    public static final String padl(final Number num, final int size)
+    {
+        return padl(num.toString(), size, '0');
+    }
+
+    /**
+     * 字符串左补齐。如果原始字符串s长度大于size，则只保留最后size个字符。
+     * 
+     * @param s 原始字符串
+     * @param size 字符串指定长度
+     * @param c 用于补齐的字符
+     * @return 返回指定长度的字符串，由原字符串左补齐或截取得到。
+     */
+    public static final String padl(final String s, final int size, final char c)
+    {
+        final StringBuilder sb = new StringBuilder(size);
+        if (s != null)
+        {
+            final int len = s.length();
+            if (s.length() <= size)
+            {
+                for (int i = size - len; i > 0; i--)
+                {
+                    sb.append(c);
+                }
+                sb.append(s);
+            }
+            else
+            {
+                return s.substring(len - size, len);
+            }
+        }
+        else
+        {
+            for (int i = size; i > 0; i--)
+            {
+                sb.append(c);
+            }
+        }
+        return sb.toString();
     }
 }

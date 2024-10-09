@@ -4,10 +4,11 @@
  * @update: zhixin wen <wenzhixin2010@gmail.com>
  */
 
-const Utils = $.fn.bootstrapTable.utils
+var Utils = $.fn.bootstrapTable.utils
 
 $.extend($.fn.bootstrapTable.defaults, {
   autoRefresh: false,
+  showAutoRefresh: true,
   autoRefreshInterval: 60,
   autoRefreshSilent: true,
   autoRefreshStatus: true,
@@ -17,6 +18,7 @@ $.extend($.fn.bootstrapTable.defaults, {
 $.extend($.fn.bootstrapTable.defaults.icons, {
   autoRefresh: {
     bootstrap3: 'glyphicon-time icon-time',
+    bootstrap5: 'bi-clock',
     materialize: 'access_time',
     'bootstrap-table': 'icon-clock'
   }[$.fn.bootstrapTable.theme] || 'fa-clock'
@@ -47,8 +49,8 @@ $.BootstrapTable = class extends $.BootstrapTable {
             <button class="auto-refresh ${this.constants.buttonsClass}
               ${this.options.autoRefreshStatus ? ` ${this.constants.classes.buttonActive}` : ''}"
               type="button" name="autoRefresh" title="${this.options.formatAutoRefresh()}">
-              ${ this.options.showButtonIcons ? Utils.sprintf(this.constants.html.icon, this.options.iconsPrefix, this.options.icons.autoRefresh) : ''}
-              ${ this.options.showButtonText ? this.options.formatAutoRefresh() : ''}
+              ${this.options.showButtonIcons ? Utils.sprintf(this.constants.html.icon, this.options.iconsPrefix, this.options.icons.autoRefresh) : ''}
+              ${this.options.showButtonText ? this.options.formatAutoRefresh() : ''}
             </button>
            `,
           event: this.toggleAutoRefresh

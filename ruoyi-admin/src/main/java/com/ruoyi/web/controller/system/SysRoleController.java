@@ -12,9 +12,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import com.ruoyi.common.annotation.Log;
-import com.ruoyi.common.constant.UserConstants;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
+import com.ruoyi.common.core.domain.Ztree;
 import com.ruoyi.common.core.domain.entity.SysRole;
 import com.ruoyi.common.core.domain.entity.SysUser;
 import com.ruoyi.common.core.page.TableDataInfo;
@@ -22,6 +22,7 @@ import com.ruoyi.common.enums.BusinessType;
 import com.ruoyi.common.utils.poi.ExcelUtil;
 import com.ruoyi.framework.shiro.util.AuthorizationUtils;
 import com.ruoyi.system.domain.SysUserRole;
+import com.ruoyi.system.service.ISysDeptService;
 import com.ruoyi.system.service.ISysRoleService;
 import com.ruoyi.system.service.ISysUserService;
 
@@ -41,6 +42,9 @@ public class SysRoleController extends BaseController
 
     @Autowired
     private ISysUserService userService;
+
+    @Autowired
+    private ISysDeptService deptService;
 
     @RequiresPermissions("system:role:view")
     @GetMapping()
@@ -88,11 +92,11 @@ public class SysRoleController extends BaseController
     @ResponseBody
     public AjaxResult addSave(@Validated SysRole role)
     {
-        if (UserConstants.ROLE_NAME_NOT_UNIQUE.equals(roleService.checkRoleNameUnique(role)))
+        if (!roleService.checkRoleNameUnique(role))
         {
             return error("新增角色'" + role.getRoleName() + "'失败，角色名称已存在");
         }
-        else if (UserConstants.ROLE_KEY_NOT_UNIQUE.equals(roleService.checkRoleKeyUnique(role)))
+        else if (!roleService.checkRoleKeyUnique(role))
         {
             return error("新增角色'" + role.getRoleName() + "'失败，角色权限已存在");
         }
@@ -105,6 +109,7 @@ public class SysRoleController extends BaseController
     /**
      * 修改角色
      */
+    @RequiresPermissions("system:role:edit")
     @GetMapping("/edit/{roleId}")
     public String edit(@PathVariable("roleId") Long roleId, ModelMap mmap)
     {
@@ -123,11 +128,12 @@ public class SysRoleController extends BaseController
     public AjaxResult editSave(@Validated SysRole role)
     {
         roleService.checkRoleAllowed(role);
-        if (UserConstants.ROLE_NAME_NOT_UNIQUE.equals(roleService.checkRoleNameUnique(role)))
+        roleService.checkRoleDataScope(role.getRoleId());
+        if (!roleService.checkRoleNameUnique(role))
         {
             return error("修改角色'" + role.getRoleName() + "'失败，角色名称已存在");
         }
-        else if (UserConstants.ROLE_KEY_NOT_UNIQUE.equals(roleService.checkRoleKeyUnique(role)))
+        else if (!roleService.checkRoleKeyUnique(role))
         {
             return error("修改角色'" + role.getRoleName() + "'失败，角色权限已存在");
         }
@@ -156,6 +162,7 @@ public class SysRoleController extends BaseController
     public AjaxResult authDataScopeSave(SysRole role)
     {
         roleService.checkRoleAllowed(role);
+        roleService.checkRoleDataScope(role.getRoleId());
         role.setUpdateBy(getLoginName());
         if (roleService.authDataScope(role) > 0)
         {
@@ -179,7 +186,7 @@ public class SysRoleController extends BaseController
      */
     @PostMapping("/checkRoleNameUnique")
     @ResponseBody
-    public String checkRoleNameUnique(SysRole role)
+    public boolean checkRoleNameUnique(SysRole role)
     {
         return roleService.checkRoleNameUnique(role);
     }
@@ -189,7 +196,7 @@ public class SysRoleController extends BaseController
      */
     @PostMapping("/checkRoleKeyUnique")
     @ResponseBody
-    public String checkRoleKeyUnique(SysRole role)
+    public boolean checkRoleKeyUnique(SysRole role)
     {
         return roleService.checkRoleKeyUnique(role);
     }
@@ -213,6 +220,7 @@ public class SysRoleController extends BaseController
     public AjaxResult changeStatus(SysRole role)
     {
         roleService.checkRoleAllowed(role);
+        roleService.checkRoleDataScope(role.getRoleId());
         return toAjax(roleService.changeStatus(role));
     }
 
@@ -296,6 +304,19 @@ public class SysRoleController extends BaseController
     @ResponseBody
     public AjaxResult selectAuthUserAll(Long roleId, String userIds)
     {
+        roleService.checkRoleDataScope(roleId);
         return toAjax(roleService.insertAuthUsers(roleId, userIds));
+    }
+
+    /**
+     * 加载角色部门（数据权限）列表树
+     */
+    @RequiresPermissions("system:role:edit")
+    @GetMapping("/deptTreeData")
+    @ResponseBody
+    public List<Ztree> deptTreeData(SysRole role)
+    {
+        List<Ztree> ztrees = deptService.roleDeptTreeData(role);
+        return ztrees;
     }
 }

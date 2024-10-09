@@ -40,8 +40,7 @@ public class DictUtils
         Object cacheObj = CacheUtils.get(getCacheName(), getCacheKey(key));
         if (StringUtils.isNotNull(cacheObj))
         {
-            List<SysDictData> DictDatas = StringUtils.cast(cacheObj);
-            return DictDatas;
+            return StringUtils.cast(cacheObj);
         }
         return null;
     }
@@ -55,6 +54,10 @@ public class DictUtils
      */
     public static String getDictLabel(String dictType, String dictValue)
     {
+        if (StringUtils.isEmpty(dictValue))
+        {
+            return StringUtils.EMPTY;
+        }
         return getDictLabel(dictType, dictValue, SEPARATOR);
     }
 
@@ -67,6 +70,10 @@ public class DictUtils
      */
     public static String getDictValue(String dictType, String dictLabel)
     {
+        if (StringUtils.isEmpty(dictLabel))
+        {
+            return StringUtils.EMPTY;
+        }
         return getDictValue(dictType, dictLabel, SEPARATOR);
     }
 
@@ -82,8 +89,11 @@ public class DictUtils
     {
         StringBuilder propertyString = new StringBuilder();
         List<SysDictData> datas = getDictCache(dictType);
-
-        if (StringUtils.containsAny(separator, dictValue) && StringUtils.isNotEmpty(datas))
+        if (StringUtils.isNull(datas))
+        {
+            return StringUtils.EMPTY;
+        }
+        if (StringUtils.containsAny(dictValue, separator))
         {
             for (SysDictData dict : datas)
             {
@@ -91,7 +101,7 @@ public class DictUtils
                 {
                     if (value.equals(dict.getDictValue()))
                     {
-                        propertyString.append(dict.getDictLabel() + separator);
+                        propertyString.append(dict.getDictLabel()).append(separator);
                         break;
                     }
                 }
@@ -122,8 +132,11 @@ public class DictUtils
     {
         StringBuilder propertyString = new StringBuilder();
         List<SysDictData> datas = getDictCache(dictType);
-
-        if (StringUtils.containsAny(separator, dictLabel) && StringUtils.isNotEmpty(datas))
+        if (StringUtils.isNull(datas))
+        {
+            return StringUtils.EMPTY;
+        }
+        if (StringUtils.containsAny(dictLabel, separator))
         {
             for (SysDictData dict : datas)
             {
@@ -131,7 +144,7 @@ public class DictUtils
                 {
                     if (label.equals(dict.getDictLabel()))
                     {
-                        propertyString.append(dict.getDictValue() + separator);
+                        propertyString.append(dict.getDictValue()).append(separator);
                         break;
                     }
                 }
@@ -148,6 +161,48 @@ public class DictUtils
             }
         }
         return StringUtils.stripEnd(propertyString.toString(), separator);
+    }
+
+    /**
+     * 根据字典类型获取字典所有值
+     *
+     * @param dictType 字典类型
+     * @return 字典值
+     */
+    public static String getDictValues(String dictType)
+    {
+        StringBuilder propertyString = new StringBuilder();
+        List<SysDictData> datas = getDictCache(dictType);
+        if (StringUtils.isNull(datas))
+        {
+            return StringUtils.EMPTY;
+        }
+        for (SysDictData dict : datas)
+        {
+            propertyString.append(dict.getDictValue()).append(SEPARATOR);
+        }
+        return StringUtils.stripEnd(propertyString.toString(), SEPARATOR);
+    }
+
+    /**
+     * 根据字典类型获取字典所有标签
+     *
+     * @param dictType 字典类型
+     * @return 字典值
+     */
+    public static String getDictLabels(String dictType)
+    {
+        StringBuilder propertyString = new StringBuilder();
+        List<SysDictData> datas = getDictCache(dictType);
+        if (StringUtils.isNull(datas))
+        {
+            return StringUtils.EMPTY;
+        }
+        for (SysDictData dict : datas)
+        {
+            propertyString.append(dict.getDictLabel()).append(SEPARATOR);
+        }
+        return StringUtils.stripEnd(propertyString.toString(), SEPARATOR);
     }
 
     /**

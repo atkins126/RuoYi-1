@@ -111,6 +111,12 @@ public class SysConfigServiceImpl implements ISysConfigService
     @Override
     public int updateConfig(SysConfig config)
     {
+        SysConfig temp = configMapper.selectConfigById(config.getConfigId());
+        if (!StringUtils.equals(temp.getConfigKey(), config.getConfigKey()))
+        {
+            CacheUtils.remove(getCacheName(), getCacheKey(temp.getConfigKey()));
+        }
+
         int row = configMapper.updateConfig(config);
         if (row > 0)
         {
@@ -123,7 +129,6 @@ public class SysConfigServiceImpl implements ISysConfigService
      * 批量删除参数配置对象
      * 
      * @param ids 需要删除的数据ID
-     * @return 结果
      */
     @Override
     public void deleteConfigByIds(String ids)
@@ -180,15 +185,15 @@ public class SysConfigServiceImpl implements ISysConfigService
      * @return 结果
      */
     @Override
-    public String checkConfigKeyUnique(SysConfig config)
+    public boolean checkConfigKeyUnique(SysConfig config)
     {
         Long configId = StringUtils.isNull(config.getConfigId()) ? -1L : config.getConfigId();
         SysConfig info = configMapper.checkConfigKeyUnique(config.getConfigKey());
         if (StringUtils.isNotNull(info) && info.getConfigId().longValue() != configId.longValue())
         {
-            return UserConstants.CONFIG_KEY_NOT_UNIQUE;
+            return UserConstants.NOT_UNIQUE;
         }
-        return UserConstants.CONFIG_KEY_UNIQUE;
+        return UserConstants.UNIQUE;
     }
 
     /**

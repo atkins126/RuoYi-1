@@ -11,6 +11,7 @@ import com.ruoyi.common.annotation.Excel.ColumnType;
 import com.ruoyi.common.annotation.Excel.Type;
 import com.ruoyi.common.annotation.Excels;
 import com.ruoyi.common.core.domain.BaseEntity;
+import com.ruoyi.common.xss.Xss;
 
 /**
  * 用户对象 sys_user
@@ -22,7 +23,7 @@ public class SysUser extends BaseEntity
     private static final long serialVersionUID = 1L;
 
     /** 用户ID */
-    @Excel(name = "用户序号", cellType = ColumnType.NUMERIC, prompt = "用户编号")
+    @Excel(name = "用户序号", type = Type.EXPORT, cellType = ColumnType.NUMERIC, prompt = "用户编号")
     private Long userId;
 
     /** 部门ID */
@@ -51,7 +52,7 @@ public class SysUser extends BaseEntity
     private String email;
 
     /** 手机号码 */
-    @Excel(name = "手机号码")
+    @Excel(name = "手机号码", cellType = ColumnType.TEXT)
     private String phonenumber;
 
     /** 用户性别 */
@@ -160,6 +161,7 @@ public class SysUser extends BaseEntity
         this.roleId = roleId;
     }
 
+    @Xss(message = "登录账号不能包含脚本字符")
     @NotBlank(message = "登录账号不能为空")
     @Size(min = 0, max = 30, message = "登录账号长度不能超过30个字符")
     public String getLoginName()
@@ -172,6 +174,7 @@ public class SysUser extends BaseEntity
         this.loginName = loginName;
     }
 
+    @Xss(message = "用户昵称不能包含脚本字符")
     @Size(min = 0, max = 30, message = "用户昵称长度不能超过30个字符")
     public String getUserName()
     {
@@ -247,6 +250,7 @@ public class SysUser extends BaseEntity
         this.password = password;
     }
 
+    @JsonIgnore
     public String getSalt()
     {
         return salt;
